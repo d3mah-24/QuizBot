@@ -3,7 +3,7 @@ from telebot import *
 import telebot
 
 from constants import *
-bot = telebot.TeleBot("5910953607:AAGp0eV6OPwZRDbIKtih8EiZ6SZAAR_J65w")
+bot = telebot.TeleBot("TOKEN")
 
 users = {}
 registered_users = {}
