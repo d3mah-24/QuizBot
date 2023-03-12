@@ -3,12 +3,11 @@ from telebot import *
 import telebot
 
 from constants import *
-bot = telebot.TeleBot("TOKEN")
+bot = telebot.TeleBot("Token")
 
 users = {}
 registered_users = {}
 reff = {}
-# Handler for the /start and /help commands
 tyype = ""
 rewards_list = {
     "10": ["100 Birr Card", "150 Min voice"],
@@ -28,7 +27,6 @@ def send_welcome(message):
             # get the user who referred the new user
             users[u_id]["coins"] += 10
             users[u_id]["referrals"].append(user_id)
-        # increment the referral count for the referrer
         bot.reply_to(
             message, hello["ENGLISH"])
         return
@@ -48,7 +46,6 @@ def register_user(message):
     username = message.from_user.username
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name if message.from_user.last_name else ""
-
     if user_id not in registered_users:
         users[user_id] = {
             "username": username,
@@ -62,17 +59,13 @@ def register_user(message):
             'referral_code': ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ', k=6)),
             'coins': 0,
             'referrals': [],
-
         }
         reff[users[user_id]['referral_code']] = user_id
         users[user_id]["referral_link"] = f"https://t.me/{bot.get_me().username}?start={users[user_id]['referral_code']}"
-
         registered_users[user_id] = True
-        # generate_Language_inline_keyboard()
         bot.reply_to(
             message, registered_w[users[user_id]['Lang']].format(
                 users[user_id]['referral_link']))
-
     else:
         bot.reply_to(message, already[users[user_id]['Lang']])
 
@@ -82,11 +75,9 @@ def register_user(message):
 @ bot.message_handler(commands=['menu'])
 def show_menu(message):
     user_id = message.from_user.id
-
     # Check if the user is registered
     if user_id not in registered_users:
-        bot.reply_to(
-            message, first_register[users[user_id]['Lang']])
+        bot.reply_to(message, first_register[users[user_id]['Lang']])
         return
     markup = telebot.types.ReplyKeyboardMarkup(
         row_width=2, resize_keyboard=True)
@@ -107,7 +98,6 @@ def generate_inline_keyboard_quiz():
         btn = types.InlineKeyboardButton(
             ans, callback_data=f"**{ans}")
         markup.add(btn)
-
     return markup
 
 
@@ -181,8 +171,6 @@ quiz_answers = {
 
 
 # create a function to generate the inline keyboard with answer options
-
-
 def generate_inline_keyboard(question_num, ty):
     markup = types.InlineKeyboardMarkup()
     for ans in quiz_answers[ty][question_num - 1]:
@@ -211,22 +199,18 @@ def generate_Language_inline_keyboard(message):
 
 
 # create a function to send the quiz question
-
-
 def send_question(chat_id, question_num, ty):
     question = list(quiz_questions[ty].keys())[question_num - 1]
     keyboard = generate_inline_keyboard(question_num, ty)
     bot.send_message(chat_id, question, reply_markup=keyboard)
 
+
 # create a function to handle user input
-
-
 @ bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
     user = call.from_user.id
     print(call.data)
     if "**" in call.data:
-        # print(888888)
         global tyype
         tyype = call.data[2:]
         idd = users[user]["iid"]
@@ -248,12 +232,9 @@ def callback_handler(call):
             item = rewards_list[price][int(index)]
             bot.send_message(
                 call.message.chat.id, secret[users[user]["Lang"]].format(item, secret_key))
-
     else:
         question_num, answer = call.data.split("_")
         users[user]["iid"] += 1
-        print(question_num, 100000)
-
         if (int(question_num)+1) % 5 == 0:
             if answer == quiz_questions[tyype][list(quiz_questions[tyype].keys())[int(question_num) - 1]]:
                 bot.quiz_scores[user] += 1
@@ -262,7 +243,6 @@ def callback_handler(call):
             bot.send_message(
                 call.message.chat.id, congra[users[user]['Lang']].format(final_score, len(quiz_questions[tyype])))
             if users[user]["iid"]-1 == len(quiz_questions[tyype]):
-                print(778)
                 bot.quiz_scores[user] = 0
                 users[user]["score"] = 0
             return
@@ -271,26 +251,21 @@ def callback_handler(call):
         if user not in bot.quiz_scores:
             bot.quiz_scores[user] = 0
             users[user]["score"] = 0
-
         if answer == quiz_questions[tyype][list(quiz_questions[tyype].keys())[int(question_num) - 1]]:
-            # bot.answer_callback_query(call.id, text="Correct!")
             bot.quiz_scores[user] += 1
             users[user]["score"] += 1
             if int(question_num) < len(quiz_questions[tyype]) and (int(question_num)+1) % 5 != 0:
                 send_question(call.message.chat.id,
                               int(question_num) + 1, tyype)
             else:
-                final_score = users[user]["score"]  # bot.quiz_scores[user]
+                final_score = users[user]["score"]
                 bot.send_message(
                     call.message.chat.id, congra[users[user]['Lang']].format(final_score, len(quiz_questions[tyype])))
                 if users[user]["iid"]-1 == len(quiz_questions[tyype]):
-                    # print(778)
                     bot.quiz_scores[user] = 0
                     users[user]["score"] = 0
                 users[user]["iid"] = 1
-
         else:
-
             if int(question_num) < len(quiz_questions[tyype]) and (int(question_num)+1) % 5 != 0:
                 send_question(call.message.chat.id,
                               int(question_num) + 1, tyype)
@@ -298,9 +273,7 @@ def callback_handler(call):
                 final_score = bot.quiz_scores[user]
                 bot.send_message(
                     call.message.chat.id, congra[users[user]['Lang']].format(final_score, len(quiz_questions[tyype])))
-                # print()
                 if users[user]["iid"]-1 == len(quiz_questions[tyype]):
-                    # print(770)
                     bot.quiz_scores[user] = 0
                     users[user]["score"] = 0
                 users[user]["iid"] = 1
@@ -354,12 +327,12 @@ def reward(message):
             btn = types.InlineKeyboardButton(
                 g, callback_data=f"++{k}_{i}")
             markup.add(btn)
-
         bot.send_message(
             user_id, buy[users[user_id]['Lang']].format(k), reply_markup=markup)
 
-
 # create a function to start the quiz
+
+
 @ bot.message_handler(commands=['Quiz'])
 def start_handler(message):
     user_id = message.from_user.id
